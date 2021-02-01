@@ -23,6 +23,7 @@ st.title("Taux d'incidence communes du dept. 13")
 
 
 st.markdown("""
+Auteur : **Cédric Lebocq**            
 Cette application récupére les données directement sur le site du **gouvernement**
 * **Data source:** [données laboratoires](https://www.data.gouv.fr/fr/datasets/donnees-de-laboratoires-infra-departementales-durant-lepidemie-covid-19/).
 * Pour l'instant seules les communes de **0 à 10 000 habitants** peuvent être séléctionnées
