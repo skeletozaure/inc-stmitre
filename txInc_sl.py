@@ -186,7 +186,7 @@ def plotTxInc(ds, resample, method, ylabel, legend):
             nrows = (len(keeped) // ncols) + 1
 
     # définition des subplots
-    fig, axs = plt.subplots(nrows, ncols, figsize=(15, nrows*4), sharey='row')
+    fig, axs = plt.subplots(nrows, ncols, figsize=(15, nrows*3), sharey='row')
 
     row = 0
     col = 0
