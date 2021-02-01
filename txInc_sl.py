@@ -10,6 +10,7 @@ Affichage graphique du taux d'incidence - Webapp Streamlit
 from datetime import datetime
 from numpy import trapz
 import os.path
+import glob
 import pandas as pd  # conda install xlrd is necessary...
 import matplotlib.pyplot as plt
 import numpy as np
@@ -52,9 +53,15 @@ dsPop = load_static_data()
 now = datetime.now()
 dt_string = now.strftime("%Y-%m-%d")
 
+# Cleanup
+for CleanUp in glob.glob('./data/*.csv'):
+    if not CleanUp.endswith(f'{dt_string}.csv'):    
+        os.remove(CleanUp)
+#
+
+
 # si le fichier est déjà présent on ne le récupére pas à nouveau
 if not os.path.isfile(f'./data/{dt_string}.csv'):
-    st.write("Chargement des données...")
     # récupération du fichier brut
     url = 'https://www.data.gouv.fr/fr/datasets/r/c2e2e844-9671-4f81-8c81-1b79f7687de3'
     r = requests.get(url, allow_redirects=True)
@@ -78,6 +85,7 @@ if not os.path.isfile(f'./data/{dt_string}.csv'):
                         ';'.join(chunks[7:])
                     outp.write(newline)
 
+    os.remove('./data/down.csv')
 # %% On charge le fichier dans un dataset
 
 
