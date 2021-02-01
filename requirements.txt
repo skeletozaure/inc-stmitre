@@ -2,3 +2,4 @@ streamlit==0.71.0
 pandas==1.1.4
 numpy==1.19.2
 xlrd==2.0.1
+matplotlib==3.3.2
