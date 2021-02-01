@@ -237,8 +237,9 @@ def plotTxInc(ds, resample, method, ylabel, legend):
 def plotSInc(sInc, legend):
     fig, ax = plt.subplots(figsize=(8, 8))
     sInc.plot.barh(x='Ville', y='Surface Incidence', ax=ax)
-    idx = int(sInc[sInc['Ville'] == 'SAINT-MITRE-LES-REMPARTS'].index[0])
-    ax.get_children()[idx].set_color('r')
+    if 'SAINT-MITRE-LES-REMPARTS' in sInc['Ville']:
+        idx = int(sInc[sInc['Ville'] == 'SAINT-MITRE-LES-REMPARTS'].index[0])
+        ax.get_children()[idx].set_color('r')
     ax.legend([legend], loc='lower right')
     st.pyplot(fig)
 
