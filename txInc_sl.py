@@ -261,6 +261,10 @@ def getSInc(ds, resample, method):
                            'Ville', 'Surface Incidence'])
     txAreas = txAreas.sort_values(by=['Surface Incidence'])
     txAreas = txAreas.reset_index(drop=True)
+    MaxValue = txAreas['Surface Incidence'].max()
+    
+    #Normalisation
+    txAreas['Surface Incidence'] = (txAreas['Surface Incidence'] / MaxValue)*100
 
     return txAreas
 
@@ -273,5 +277,11 @@ plotTxInc(dsSup65pv, '6H', 'cubic', 'tx inc. >65ans', "Taux incidence +65 ans")
 sIncInf65 = getSInc(dsInf65pv, '6H', 'linear')
 sIncSup65 = getSInc(dsSup65pv, '6H', 'linear')
 
-plotSInc(sIncInf65, "Incidence gloable sur un mois -65ans")
-plotSInc(sIncSup65, "Incidence gloable sur un mois +65ans")
+st.markdown("""
+Les graphes ci-dessous représentent avec quelle **'force'** ont été frappés les village sur le mois
+courant en prenant pour référence le village le plus touché (base 100).
+Ce calcul est réalisé par intégration de la surface sous les courbes d'incidence 
+""")
+
+plotSInc(sIncInf65, "Impact sur un mois -65ans")
+plotSInc(sIncSup65, "Impact sur un mois +65ans")
