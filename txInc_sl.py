@@ -280,7 +280,7 @@ sIncSup65 = getSInc(dsSup65pv, '6H', 'linear')
 st.markdown("""
 Les graphes ci-dessous représentent avec quelle **'force'** ont été frappés les village sur le mois
 courant en prenant pour référence le village le plus touché (base 100).
-Ce calcul est réalisé par intégration de la surface sous les courbes d'incidence 
+Ce calcul est réalisé par intégration de la surface sous les courbes d'incidence. 
 """)
 
 plotSInc(sIncInf65, "Impact sur un mois -65ans")
