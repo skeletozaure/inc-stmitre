@@ -108,7 +108,7 @@ comName = com['com2016']           # contient le nom des communes
 # Sidebar - Selection des villes dans la fourchette
 
 selected_towns = st.sidebar.multiselect(
-    'Villes', options=list(comName), default=['ISTRES','SAINT-MITRE-LES-REMPARTS','FOS-SUR-MER','MARTIGUES','PORT-DE-BOUC'])
+    'Villes', options=list(comName), default=['ISTRES','SAINT-MITRE-LES-REMPARTS','FOS-SUR-MER','MARTIGUES','PORT-DE-BOUC','MIRAMAS'])
 
 com = com[com['com2016'].isin(selected_towns)][['Code', 'com2016', 'p14_pop']]
 com.columns = ['Code', 'Nom', 'Population']
