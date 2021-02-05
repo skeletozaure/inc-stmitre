@@ -20,7 +20,7 @@ import streamlit as st
 
 # %% Streamlit stuff
 
-st.title("Taux d'incidence communes du dept. 13")
+st.title("Taux d'incidence et positivité communes du dept. 13")
 
 
 st.markdown("""
@@ -118,11 +118,25 @@ com.reset_index(inplace=True, drop=True)
 
 st.dataframe(com[['Nom', 'Population']])
 
-
 # %% Préparation du dataset des incidences
 
 # on Filtre le dataset
 dsTxInc13eq = dsTxInc[dsTxInc['com2020'].isin(com['Code'].astype(str))]
+
+
+# Classes de taux de positivité
+dicClsTp = {'0': 0.,
+          '[1;5[': 5,
+          '[5;10[': 10,
+          '[10;15[': 15,
+          '[15;20[': 20}
+
+# et couleurs associées
+dicCol = {0 :  'green',
+          5:   'lightsalmon',
+          10 : 'salmon',
+          15 : 'firebrick',
+          20 : 'saddlebrown'}
 
 # Classes d'incidence
 dicCls = {'[0;10[': 10,
@@ -138,6 +152,8 @@ dicCls = {'[0;10[': 10,
 dsTxInc13eq = dsTxInc13eq.copy()
 # mapping pour remplacer les classes par une valeur
 dsTxInc13eq['ti'] = dsTxInc13eq['ti_classe'].map(dicCls)
+dsTxInc13eq['tp'] = dsTxInc13eq['tp_classe'].map(dicClsTp)
+
 # on ne conserve qu'une partie de la date dans la semaine glissante (la date de fin)
 dsTxInc13eq['date'] = dsTxInc13eq['semaine_glissante'].str.slice(
     11, 21).astype('datetime64')
@@ -146,26 +162,31 @@ dsCodeCom = com[['Code', 'Nom']]
 dsCodeCom['Code'] = dsCodeCom['Code'].astype(str)
 dicCodeCom = dict(zip(dsCodeCom['Code'], dsCodeCom['Nom']))
 dsTxInc13eq['commune'] = dsTxInc13eq['com2020'].map(dicCodeCom)
-dsTxInc13eqFiltered = dsTxInc13eq[['date', 'commune', 'clage_65', 'ti']]
+dsTxInc13eqFiltered = dsTxInc13eq[['date', 'commune', 'clage_65', 'ti','tp']]
 
 # Classe des -65 ans
 dsInf65 = dsTxInc13eqFiltered[dsTxInc13eqFiltered['clage_65'] == 0][[
-    'date', 'commune', 'ti']]
+    'date', 'commune', 'ti','tp']]
 # Classe des +65 ans
 dsSup65 = dsTxInc13eqFiltered[dsTxInc13eqFiltered['clage_65'] == 65][[
-    'date', 'commune', 'ti']]
+    'date', 'commune', 'ti','tp']]
 
-# pivot des dataframe
+# pivot des dataframe pour le taux d'incidence
 dsSup65pv = dsSup65.pivot_table(
     index='date', columns='commune', values='ti')  # +65 ans
 dsInf65pv = dsInf65.pivot_table(
     index='date', columns='commune', values='ti')  # -65 ans
 
+# pivot des dataframe pour le taux de positivité
+dsSup65tp = dsSup65.pivot_table(
+    index='date', columns='commune', values='tp')  # +65 ans
+dsInf65tp = dsInf65.pivot_table(
+    index='date', columns='commune', values='tp')  # -65 ans
+
 # %% Fonction pour tracer graphique
 
-
-def plotTxInc(ds, resample, method, ylabel, legend):
-    keeped = ds.columns
+def plotTxInc(dsInc, dsTp, resample, method, ylabell,ylabelr, legend):
+    keeped = dsInc.columns
 
     # calcul du nombre de lignes et colonnes en fonction du nombre de village
     if len(keeped) % 2 == 0:
@@ -179,43 +200,60 @@ def plotTxInc(ds, resample, method, ylabel, legend):
             nrows = (len(keeped) // ncols) + 1
 
     # définition des subplots
-    fig, axs = plt.subplots(nrows, ncols, figsize=(15, nrows*3), sharey='row')
+    fig, axs = plt.subplots(nrows, ncols, figsize=(15, nrows*3), sharey='all')
 
     row = 0
     col = 0
 
+    ax2l=[]
     for com_ in keeped:
-        tsres = ds[com_].resample(resample)
+        tsres = dsInc[com_].resample(resample)
         tsint = tsres.interpolate(method=method)
+        txMean = int(tsint.mean())
 
         if com_ == 'SAINT-MITRE-LES-REMPARTS':
             c = 'blue'
+            lw = 3
+        else:
+            c = 'darkgreen'
             lw = 2
-        else:
-            c = 'green'
-            lw = 1
-
-        txMean = int(tsint.mean())
+        
         if nrows > 1:
-            axs[row, col].plot(tsint.index, tsint, label=com_,
-                               alpha=1, color=c, linewidth=lw)
-            axs[row, col].axhline(
-                txMean, 0, 1, label=f"Moyenne = {txMean}", alpha=1, color="orange", linewidth=lw)
-            axs[row, col].legend(loc='upper left', frameon=False)
+            ax1 = axs[row, col]
         else:
-            axs[col].plot(tsint.index, tsint, label=com_,
-                          alpha=1, color=c, linewidth=lw)
-            axs[col].axhline(
-                txMean, 0, 1, label=f"Moyenne = {txMean}", alpha=1, color="orange", linewidth=lw)
-            axs[col].legend(loc='upper left', frameon=False)
+            ax1 = axs[col]
+            
+        ax2 = ax1.twinx()
+        # afin de pouvoir partager la même echelle sur tous axe y secondaires
+        ax2l.append(ax2)
+
+        # Taux de positivité
+        colors = [dicCol[int(key)] for key in dsTp[com_]]    
+        ax2.bar(dsTp.index,dsTp[com_],alpha=0.3,color=colors)
+        ax2.set(xlabel='date', ylabel=ylabelr)
+
+        # Taux incidence
+        ax1.plot(tsint.index, tsint, label=com_,
+                           alpha=1, color=c, linewidth=lw)
+        
+        #moyenne
+        ax1.axhline(
+            txMean, 0, 1, label=f"Moyenne = {txMean}", alpha=1, color="orange", linewidth=lw)
+        ax1.legend(loc='upper left', frameon=False)
+
 
         col += 1
         if col > (ncols-1):
             row += 1
             col = 0
 
+    #partage de la meme echelle sur les axes y secondaires
+    ax2ref = ax2l[0]
+    for ax2share in ax2l:
+        ax2ref.get_shared_y_axes().join(ax2ref,ax2share)
+
     for ax in axs.flat:
-        ax.set(xlabel='date', ylabel=ylabel)
+        ax.set(xlabel='date', ylabel=ylabell)
 
     # Hide x labels and tick labels for top plots and y ticks for right plots.
     for ax in axs.flat:
@@ -263,9 +301,11 @@ def getSInc(ds, resample, method):
 
 # %% Affichage des graphes
 
+dsInf65tp = dsInf65tp.fillna(0)
+dsSup65tp = dsSup65tp.fillna(0)
 
-plotTxInc(dsInf65pv, '6H', 'cubic', 'tx inc.', "Taux incidence -65 ans")
-plotTxInc(dsSup65pv, '6H', 'cubic', 'tx inc. >65ans', "Taux incidence +65 ans")
+plotTxInc(dsInf65pv,dsInf65tp, '6H', 'cubic', 'tx inc.','tx pos. %', "Taux incidence -65 ans")
+plotTxInc(dsSup65pv,dsSup65tp, '6H', 'cubic', 'tx inc.','tx pos. %', "Taux incidence +65 ans")
 
 sIncInf65 = getSInc(dsInf65pv, '6H', 'linear')
 sIncSup65 = getSInc(dsSup65pv, '6H', 'linear')
