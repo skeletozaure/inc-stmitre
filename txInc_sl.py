@@ -54,38 +54,39 @@ now = datetime.now()
 dt_string = now.strftime("%Y-%m-%d")
 
 # Cleanup
-for CleanUp in glob.glob('./data/*.csv'):
-    if not CleanUp.endswith(f'{dt_string}.csv'):    
-        os.remove(CleanUp)
+for cleanUp in glob.glob('./data/*.csv'):
+    if not cleanUp.endswith(f'{dt_string}.csv'):    
+        os.remove(cleanUp)
 #
-
 
 # si le fichier est déjà présent on ne le récupére pas à nouveau
 if not os.path.isfile(f'./data/{dt_string}.csv'):
     # récupération du fichier brut
     url = 'https://www.data.gouv.fr/fr/datasets/r/c2e2e844-9671-4f81-8c81-1b79f7687de3'
     r = requests.get(url, allow_redirects=True)
-    with open('./data/down.csv', 'wb') as dcom:
+    # with open('./data/down.csv', 'wb') as dcom:
+    with open(f'./data/{dt_string}.csv','wb') as dcom:
         dcom.write(r.content)
 
     # formatage
-    with open('./data/down.csv', 'r') as inp, open(f'./data/{dt_string}.csv', 'w') as outp:
-        header = True
-        for line in inp:
-            if header:
-                newline = line.replace(';', ',')
-                header = False
-                outp.write(newline)
-            else:
-                chunks = line.split(';')
-                if len(chunks) == 9:
-                    newline = ','.join(chunks[0:3]) + ',' + \
-                        ';'.join(chunks[3:5]) + ',' + \
-                        ';'.join(chunks[5:7]) + ',' + \
-                        ';'.join(chunks[7:])
-                    outp.write(newline)
+    # with open('./data/down.csv', 'r') as inp, open(f'./data/{dt_string}.csv', 'w') as outp:
+    #     header = True
+    #     for line in inp:
+    #         if header:
+    #             newline = line.replace(';', ',')
+    #             header = False
+    #             outp.write(newline)
+    #         else:
+    #             chunks = line.split(';')
+    #             if len(chunks) == 9:
+    #                 newline = ','.join(chunks[0:3]) + ',' + \
+    #                     ';'.join(chunks[3:5]) + ',' + \
+    #                     ';'.join(chunks[5:7]) + ',' + \
+    #                     ';'.join(chunks[7:])
+    #                 outp.write(newline)
 
-    os.remove('./data/down.csv')
+    # os.remove('./data/down.csv')
+    
 # %% On charge le fichier dans un dataset
 
 

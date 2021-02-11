@@ -40,7 +40,6 @@ st.sidebar.header('Choix utilisateur')
 
 @st.cache
 def load_static_data():
-    #dsC = pd.read_csv("./data/communes2020.csv")
     dsP = pd.read_excel("./data/obs.terr_populationcom.xls", "Data")
     #return dsC, dsP
     return dsP
@@ -56,9 +55,9 @@ now = datetime.now()
 dt_string = now.strftime("%Y-%m-%d")
 
 # Cleanup
-for CleanUp in glob.glob('./data/*.csv'):
-    if not CleanUp.endswith(f'{dt_string}.csv'):    
-        os.remove(CleanUp)
+for cleanUp in glob.glob('./data/*.csv'):
+    if not cleanUp.endswith(f'{dt_string}.csv'):    
+        os.remove(cleanUp)
 #
 
 
@@ -67,29 +66,29 @@ if not os.path.isfile(f'./data/{dt_string}.csv'):
     # récupération du fichier brut
     url = 'https://www.data.gouv.fr/fr/datasets/r/c2e2e844-9671-4f81-8c81-1b79f7687de3'
     r = requests.get(url, allow_redirects=True)
-    with open('./data/down.csv', 'wb') as dcom:
+    # with open('./data/down.csv', 'wb') as dcom:
+    with open(f'./data/{dt_string}.csv','wb') as dcom:
         dcom.write(r.content)
 
     # formatage
-    with open('./data/down.csv', 'r') as inp, open(f'./data/{dt_string}.csv', 'w') as outp:
-        header = True
-        for line in inp:
-            if header:
-                newline = line.replace(';', ',')
-                header = False
-                outp.write(newline)
-            else:
-                chunks = line.split(';')
-                if len(chunks) == 9:
-                    newline = ','.join(chunks[0:3]) + ',' + \
-                        ';'.join(chunks[3:5]) + ',' + \
-                        ';'.join(chunks[5:7]) + ',' + \
-                        ';'.join(chunks[7:])
-                    outp.write(newline)
+    # with open('./data/down.csv', 'r') as inp, open(f'./data/{dt_string}.csv', 'w') as outp:
+    #     header = True
+    #     for line in inp:
+    #         if header:
+    #             newline = line.replace(';', ',')
+    #             header = False
+    #             outp.write(newline)
+    #         else:
+    #             chunks = line.split(';')
+    #             if len(chunks) == 9:
+    #                 newline = ','.join(chunks[0:3]) + ',' + \
+    #                     ';'.join(chunks[3:5]) + ',' + \
+    #                     ';'.join(chunks[5:7]) + ',' + \
+    #                     ';'.join(chunks[7:])
+    #                 outp.write(newline)
 
-    os.remove('./data/down.csv')
+    # os.remove('./data/down.csv')
 # %% On charge le fichier dans un dataset
-
 
 @st.cache
 def load_cached_txInc():
@@ -98,7 +97,6 @@ def load_cached_txInc():
 
 
 dsTxInc = load_cached_txInc()
-
 
 # %% On filtre les communes dans la fourchette (population de 2014)
 com = dsPop[dsPop['Code'].astype(str).str.startswith('13')].sort_values(by=['com2016'])
@@ -303,6 +301,7 @@ def getSInc(ds, resample, method):
 
 dsInf65tp = dsInf65tp.fillna(0)
 dsSup65tp = dsSup65tp.fillna(0)
+
 
 plotTxInc(dsInf65pv,dsInf65tp, '6H', 'cubic', 'tx inc.','tx pos. %', "Taux incidence -65 ans")
 plotTxInc(dsSup65pv,dsSup65tp, '6H', 'cubic', 'tx inc.','tx pos. %', "Taux incidence +65 ans")
